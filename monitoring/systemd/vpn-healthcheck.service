@@ -1,0 +1,10 @@
+# Local healthcheck on the server (FR-7.3). Install into /etc/systemd/system/
+# and enable the matching .timer. Exits non-zero -> journal records the failure.
+[Unit]
+Description=vpn-selfhost local healthcheck
+
+[Service]
+Type=oneshot
+User=vpnadmin
+WorkingDirectory=/opt/vpn-selfhost
+ExecStart=/usr/bin/env python3 -m vpnctl monitor health

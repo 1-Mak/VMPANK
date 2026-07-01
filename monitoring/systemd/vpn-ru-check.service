@@ -1,0 +1,10 @@
+# RU availability + freeze probe (FR-7.1/7.2). Runs from the OPERATOR machine
+# (or any host outside RU) on a timer; alerts to Telegram on failure.
+[Unit]
+Description=vpn-selfhost RU availability check
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/vpn-selfhost
+ExecStart=/usr/bin/env python3 -m vpnctl monitor ru
+ExecStartPost=/usr/bin/env python3 -m vpnctl monitor freeze

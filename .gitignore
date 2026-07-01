@@ -1,0 +1,52 @@
+# Secrets — never commit (FR-9.1)
+.env
+*.env
+!.env.example
+secrets/
+*.vault
+*.key
+*.pem
+id_ed25519*
+id_rsa*
+
+# Generated configs / local state (contain keys, IPs)
+.build/
+.state/
+
+# Backups (FR-8, gitignored artifacts)
+backups/
+*.tar.gz
+*.tar.gz.age
+*.tar.gz.gpg
+
+# Terraform state (contains secrets/IPs)
+infra/**/.terraform/
+infra/**/*.tfstate
+infra/**/*.tfstate.*
+infra/**/*.tfvars
+!infra/**/*.tfvars.example
+crash.log
+
+# Ansible
+ansible/*.retry
+ansible/inventory/hosts.generated*
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.coverage
+htmlcov/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  # Verified locally — these are the gating checks (T-1, T-7).
+  python:
+    name: ruff + mypy + pytest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e ".[dev]"
+      - run: ruff check cli tests
+      - run: mypy
+      - run: pytest -q
+
+  # T-2: the generated xray_config.json must pass `xray -test` and honour О-2/О-4.
+  xray-config:
+    name: xray -test on generated config
+    runs-on: ubuntu-latest
+    env:
+      REALITY_SNI: www.samsung.com
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e .
+      - name: Install Xray-core (latest release)
+        run: |
+          set -euo pipefail
+          url=$(curl -sSL https://api.github.com/repos/XTLS/Xray-core/releases/latest \
+            | grep -o 'https://[^"]*Xray-linux-64\.zip' | head -1)
+          curl -sSL "$url" -o xray.zip
+          unzip -o xray.zip xray -d "$HOME/.local/bin"
+          chmod +x "$HOME/.local/bin/xray"
+      - name: Generate config
+        run: python -m vpnctl configure
+      - name: Validate with xray -test
+        run: "$HOME/.local/bin/xray -test -config .build/xray_config.json"
+
+  # Advisory until first run confirms formatting/schema (see STATUS.md).
+  terraform:
+    name: terraform validate (advisory)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        provider: [upcloud, scaleway]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - run: terraform fmt -check -recursive infra/providers/${{ matrix.provider }}
+      - run: terraform init -backend=false
+        working-directory: infra/providers/${{ matrix.provider }}
+      - run: terraform validate
+        working-directory: infra/providers/${{ matrix.provider }}
+
+  # Advisory until first run confirms lint rules (see STATUS.md).
+  ansible:
+    name: ansible syntax + lint (advisory)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install ansible ansible-lint
+      - run: ansible-galaxy collection install -r ansible/requirements.yml
+      - run: ansible-lint ansible/

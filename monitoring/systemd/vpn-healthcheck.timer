@@ -1,0 +1,10 @@
+[Unit]
+Description=Run vpn-selfhost healthcheck every 5 minutes (FR-7)
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+Unit=vpn-healthcheck.service
+
+[Install]
+WantedBy=timers.target

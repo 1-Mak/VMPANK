@@ -1,0 +1,8 @@
+# Scheduled backup (FR-8.1). Encrypts secrets; writes to BACKUP_DIR.
+[Unit]
+Description=vpn-selfhost backup
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/vpn-selfhost
+ExecStart=/usr/bin/env python3 -m vpnctl backup

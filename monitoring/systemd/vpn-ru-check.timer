@@ -1,0 +1,10 @@
+[Unit]
+Description=Probe VPN reachability from RU every 10 minutes (FR-7.1)
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=10min
+Unit=vpn-ru-check.service
+
+[Install]
+WantedBy=timers.target

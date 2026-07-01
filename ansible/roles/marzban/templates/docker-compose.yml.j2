@@ -1,0 +1,18 @@
+# Managed by Ansible — do not edit on the server. Mirrors marzban/docker-compose.yml.
+services:
+  marzban:
+    image: gozargah/marzban:{{ marzban_version }}
+    restart: always
+    env_file: .env
+    environment:
+      UVICORN_HOST: 127.0.0.1
+      UVICORN_PORT: {{ marzban_port }}
+      XRAY_JSON: /var/lib/marzban/xray_config.json
+    ports:
+      - "127.0.0.1:{{ marzban_port }}:{{ marzban_port }}"
+    volumes:
+      - marzban-data:/var/lib/marzban
+      - ./xray_config.json:/var/lib/marzban/xray_config.json:ro
+
+volumes:
+  marzban-data:
