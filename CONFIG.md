@@ -28,7 +28,7 @@ belong in git (FR-9).
 | `MARZBAN_PANEL_DOMAIN` | no | — | set to enable HTTPS + stable subscription host (rotation!) |
 | `MARZBAN_PORT` | no | `8000` | localhost bind only (О-3) |
 | `MARZBAN_VERSION` | no | `v0.8.4` | pinned image tag |
-| `XRAY_VERSION` | no | `25.6.8` | pinned Xray-core |
+| `XRAY_VERSION` | no | `26.3.27` | pinned Xray-core |
 
 ## VLESS / Reality (FR-4)
 

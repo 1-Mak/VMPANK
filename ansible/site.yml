@@ -11,7 +11,7 @@
     awg_deploy_mode: same-host
     marzban_port: 8000
     marzban_version: v0.8.4
-    xray_version: 25.6.8
+    xray_version: 26.3.27
     marzban_panel_domain: ""
     operator_ssh_key: ""
   roles:
