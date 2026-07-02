@@ -1,7 +1,7 @@
-"""User-management helpers on top of the Marzban client (FR-6).
+"""Хелперы управления пользователями поверх клиента Marzban (FR-6).
 
-Pure helpers (expire parsing, traffic formatting, export/import) are kept
-separate from I/O so they can be unit-tested without a live panel.
+Чистые хелперы (парсинг expire, форматирование трафика, экспорт/импорт) отделены
+от I/O, чтобы их можно было юнит-тестировать без живой панели.
 """
 
 from __future__ import annotations
@@ -15,10 +15,10 @@ from .marzban import GB, MarzbanClient, MarzbanUser
 
 
 def parse_expire(value: str | None, *, now: datetime | None = None) -> int | None:
-    """Parse an --expire value into a unix timestamp.
+    """Разобрать значение --expire в unix-таймстамп.
 
-    Accepts: an integer number of days ("30"), a "<N>d" form ("30d"), or an
-    ISO date ("2026-12-31"). Empty/None -> no expiry.
+    Принимает: число дней ("30"), форму "<N>d" ("30d") или ISO-дату
+    ("2026-12-31"). Пусто/None -> без срока.
     """
     if not value:
         return None
@@ -38,7 +38,7 @@ def parse_expire(value: str | None, *, now: datetime | None = None) -> int | Non
 
 
 def format_traffic(user: MarzbanUser) -> str:
-    """Human-readable 'used / limit' string."""
+    """Человекочитаемая строка 'использовано / лимит'."""
     used = user.used_traffic / GB
     if not user.data_limit:
         return f"{used:.2f} GB / ∞"
@@ -60,7 +60,7 @@ def add_user(
     traffic_gb: float | None = None,
     expire: str | None = None,
 ) -> MarzbanUser:
-    """Create a VLESS+Reality user and return it (with subscription_url)."""
+    """Создать пользователя VLESS+Reality и вернуть его (с subscription_url)."""
     return client.create_user(
         name,
         inbound_tag=inbound_tag,
@@ -70,7 +70,7 @@ def add_user(
 
 
 def export_users(users: list[MarzbanUser], path: str | Path) -> None:
-    """Dump users to JSON for migration during IP rotation (FR-6.6)."""
+    """Выгрузить пользователей в JSON для миграции при ротации IP (FR-6.6)."""
     Path(path).write_text(
         json.dumps([asdict(u) for u in users], indent=2, ensure_ascii=False),
         encoding="utf-8",
@@ -78,7 +78,7 @@ def export_users(users: list[MarzbanUser], path: str | Path) -> None:
 
 
 def load_export(path: str | Path) -> list[MarzbanUser]:
-    """Read an export produced by export_users()."""
+    """Прочитать экспорт, созданный export_users()."""
     data = json.loads(Path(path).read_text(encoding="utf-8"))
     return [MarzbanUser(**item) for item in data]
 
@@ -89,14 +89,17 @@ def import_users(
     *,
     inbound_tag: str,
 ) -> list[str]:
-    """Recreate users on a fresh panel (idempotent: skips existing). Returns skipped."""
+    """Пересоздать пользователей на свежей панели (идемпотентно: пропуск существующих).
+
+    Возвращает список пропущенных имён.
+    """
     skipped: list[str] = []
     for u in users:
         try:
             client.get_user(u.username)
             skipped.append(u.username)
             continue
-        except Exception:  # noqa: BLE001 - any lookup failure means "not present, create"
+        except Exception:  # noqa: BLE001 - любая ошибка поиска означает «нет, создаём»
             pass
         client.create_user(
             u.username,

@@ -1,9 +1,9 @@
-"""Backup / restore with encrypted secrets (FR-8.1, FR-8.2).
+"""Бэкап / восстановление с шифрованием секретов (FR-8.1, FR-8.2).
 
-A backup is a timestamped .tar.gz. Non-secret artifacts (Marzban DB, xray
-config, AWG configs, user export) go in as-is; secret files (.env, keys) are
-encrypted with a passphrase-derived Fernet key before being added, so the
-archive itself never contains plaintext secrets (FR-8.1, NFR-2).
+Бэкап — это .tar.gz с меткой времени. Несекретные артефакты (БД Marzban, конфиг
+xray, конфиги AWG, экспорт пользователей) кладутся как есть; секретные файлы
+(.env, ключи) шифруются Fernet-ключом, выведенным из парольной фразы, до
+добавления — так сам архив никогда не содержит секретов в открытом виде (FR-8.1, NFR-2).
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 _SALT_LEN = 16
-_MAGIC = b"VPNSELFHOST1"  # header for encrypted blobs: MAGIC || salt || token
+_MAGIC = b"VPNSELFHOST1"  # заголовок шифрованных блобов: MAGIC || salt || token
 
 
 def _derive_key(passphrase: str, salt: bytes) -> bytes:
@@ -49,7 +49,7 @@ def create_backup(
     passphrase: str,
     now: datetime | None = None,
 ) -> Path:
-    """Create an encrypted-secrets tar.gz backup and return its path."""
+    """Создать tar.gz-бэкап с шифрованием секретов и вернуть его путь."""
     if secret_items and not passphrase:
         raise ValueError("BACKUP_PASSPHRASE required to back up secret files")
     stamp = (now or datetime.now(UTC)).strftime("%Y%m%dT%H%M%SZ")
@@ -82,7 +82,7 @@ def restore_backup(
     *,
     passphrase: str = "",
 ) -> list[Path]:
-    """Extract a backup, decrypting secrets. Returns restored file paths."""
+    """Распаковать бэкап, расшифровав секреты. Возвращает пути восстановленных файлов."""
     archive = Path(archive)
     dest = Path(dest)
     dest.mkdir(parents=True, exist_ok=True)

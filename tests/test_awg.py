@@ -10,13 +10,13 @@ def test_keygen_is_standard_wg_base64():
     for k in (keys.private_key, keys.public_key):
         raw = base64.b64decode(k)
         assert len(raw) == 32
-        assert len(k) == 44  # 32 bytes -> 44 char padded base64
+        assert len(k) == 44  # 32 байта -> base64 из 44 символов с паддингом
 
 
 def test_obfuscation_generation_is_valid():
     for _ in range(20):
         obf = awg.generate_obfuscation()
-        obf.validate()  # must not raise
+        obf.validate()  # не должно бросить исключение
         assert obf.jmin < obf.jmax
         assert obf.s1 + 56 != obf.s2
         assert len({obf.h1, obf.h2, obf.h3, obf.h4}) == 4
@@ -44,6 +44,6 @@ def test_render_server_and_client_share_obfuscation():
     for line in (f"Jc = {server.obf.jc}", f"H1 = {server.obf.h1}"):
         assert line in server_conf
         assert line in client_conf
-    assert "MASQUERADE" in server_conf  # NAT so traffic actually routes
+    assert "MASQUERADE" in server_conf  # NAT, чтобы трафик реально маршрутизировался
     assert f"Endpoint = 203.0.113.10:{server.listen_port}" in client_conf
     assert "AllowedIPs = 0.0.0.0/0, ::/0" in client_conf

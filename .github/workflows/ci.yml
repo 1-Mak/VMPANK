@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  # Verified locally — these are the gating checks (T-1, T-7).
+  # Проверено локально — это гейтящие проверки (T-1, T-7).
   python:
     name: ruff + mypy + pytest
     runs-on: ubuntu-latest
@@ -22,9 +22,9 @@ jobs:
       - run: mypy
       - run: pytest -q
 
-  # T-2: the generated xray_config.json must pass `xray -test` and honour О-2/О-4.
+  # T-2: сгенерированный xray_config.json должен пройти `xray -test` и соблюсти О-2/О-4.
   xray-config:
-    name: xray -test on generated config
+    name: xray -test на сгенерированном конфиге
     runs-on: ubuntu-latest
     env:
       REALITY_SNI: www.samsung.com
@@ -34,7 +34,7 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -e .
-      - name: Install Xray-core (latest release)
+      - name: Установить Xray-core (последний релиз)
         run: |
           set -euo pipefail
           url=$(curl -sSL https://api.github.com/repos/XTLS/Xray-core/releases/latest \
@@ -42,12 +42,12 @@ jobs:
           curl -sSL "$url" -o xray.zip
           unzip -o xray.zip xray -d "$HOME/.local/bin"
           chmod +x "$HOME/.local/bin/xray"
-      - name: Generate config
+      - name: Сгенерировать конфиг
         run: python -m vpnctl configure
-      - name: Validate with xray -test
+      - name: Проверить через xray -test
         run: "$HOME/.local/bin/xray -test -config .build/xray_config.json"
 
-  # Advisory until first run confirms formatting/schema (see STATUS.md).
+  # Advisory, пока первый прогон не подтвердит форматирование/схему (см. STATUS.md).
   terraform:
     name: terraform validate (advisory)
     runs-on: ubuntu-latest
@@ -64,7 +64,7 @@ jobs:
       - run: terraform validate
         working-directory: infra/providers/${{ matrix.provider }}
 
-  # Advisory until first run confirms lint rules (see STATUS.md).
+  # Advisory, пока первый прогон не подтвердит правила линтера (см. STATUS.md).
   ansible:
     name: ansible syntax + lint (advisory)
     runs-on: ubuntu-latest

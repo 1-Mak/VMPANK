@@ -1,8 +1,8 @@
-"""AmneziaWG (obfuscated WireGuard) key/peer/config generation (FR-5).
+"""Генерация ключей/пиров/конфига AmneziaWG (обфусцированный WireGuard) (FR-5).
 
-Server and every peer MUST share identical obfuscation parameters (Jc/Jmin/Jmax/
-S1/S2/H1..H4), otherwise the handshake fails. Generate them once per deployment
-and reuse for all peers.
+Сервер и каждый пир ОБЯЗАНЫ иметь одинаковые параметры обфускации (Jc/Jmin/Jmax/
+S1/S2/H1..H4), иначе хендшейк не проходит. Генерируем их один раз на развёртывание
+и переиспользуем для всех пиров.
 """
 
 from __future__ import annotations
@@ -17,12 +17,12 @@ from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey
 
 @dataclass(frozen=True)
 class WgKeys:
-    private_key: str  # standard WireGuard base64 (44 chars)
+    private_key: str  # стандартный base64 WireGuard (44 символа)
     public_key: str
 
 
 def generate_keys() -> WgKeys:
-    """Generate a WireGuard/AmneziaWG Curve25519 keypair."""
+    """Сгенерировать пару ключей Curve25519 для WireGuard/AmneziaWG."""
     priv = X25519PrivateKey.generate()
     priv_raw = priv.private_bytes(
         encoding=serialization.Encoding.Raw,
@@ -41,7 +41,7 @@ def generate_keys() -> WgKeys:
 
 @dataclass(frozen=True)
 class Obfuscation:
-    """AmneziaWG junk/header parameters. Must match on both ends."""
+    """Параметры junk/заголовков AmneziaWG. Должны совпадать на обоих концах."""
 
     jc: int
     jmin: int
@@ -68,7 +68,7 @@ class Obfuscation:
 
 
 def generate_obfuscation() -> Obfuscation:
-    """Randomize obfuscation params within safe, mutually-consistent ranges."""
+    """Рандомизировать параметры обфускации в безопасных согласованных диапазонах."""
     s1 = secrets.randbelow(100) + 15  # 15..114
     while True:
         s2 = secrets.randbelow(100) + 15
@@ -98,14 +98,14 @@ class Peer:
     name: str
     private_key: str
     public_key: str
-    address: str  # e.g. 10.8.0.2/32
+    address: str  # напр. 10.8.0.2/32
 
 
 @dataclass
 class ServerConfig:
     private_key: str
     public_key: str
-    address: str  # e.g. 10.8.0.1/24
+    address: str  # напр. 10.8.0.1/24
     listen_port: int
     endpoint_host: str
     obf: Obfuscation
@@ -122,7 +122,7 @@ class ServerConfig:
         )
 
     def render_server(self) -> str:
-        """Render the server-side awg0.conf."""
+        """Отрендерить серверный awg0.conf."""
         wan = self.wan_iface
         post_up = (
             f"iptables -A FORWARD -i %i -j ACCEPT; "
@@ -152,7 +152,7 @@ class ServerConfig:
         return "\n".join(lines) + "\n"
 
     def render_client(self, peer: Peer) -> str:
-        """Render a client config for `peer` (Amnezia/AWG compatible, FR-5.4)."""
+        """Отрендерить клиентский конфиг для `peer` (совместим с Amnezia/AWG, FR-5.4)."""
         host = self.endpoint_host
         lines = [
             "[Interface]",
@@ -171,7 +171,7 @@ class ServerConfig:
 
 
 def add_peer(server: ServerConfig, name: str, index: int) -> Peer:
-    """Create and attach a peer; index maps to 10.x.x.(index+1)."""
+    """Создать и прикрепить пира; index отображается в 10.x.x.(index+1)."""
     keys = generate_keys()
     base = server.address.split("/")[0].rsplit(".", 1)[0]
     peer = Peer(

@@ -1,75 +1,79 @@
-# Architecture
+# Архитектура
 
-## Layers
+## Слои
 
 ```
-Operator machine (vpnctl / Makefile)
-   │  terraform            │  ansible over SSH        │  Marzban REST (via SSH tunnel)
+Машина оператора (vpnctl / Makefile)
+   │  terraform            │  ansible по SSH          │  Marzban REST (через SSH-туннель)
    ▼                       ▼                          ▼
 ┌──────────────────────────── VPS (Ubuntu 22.04/24.04) ────────────────────────────┐
-│ L1 OS+security  : vpnadmin user, key-only SSH, UFW(SSH,443/tcp,AWG/udp),          │
-│                   fail2ban, unattended-upgrades                                    │
-│ L2 Marzban      : Docker Compose; Xray inbound VLESS+Reality :443 vision;          │
-│                   panel + REST bound to 127.0.0.1 only                             │
-│ L3 AmneziaWG    : awg0 on a UDP port, obfuscated (Jc/Jmin/Jmax/S1/S2/H1..H4)       │
-│ L4 Ops          : systemd timers (healthcheck, RU-check, backup)                   │
+│ L1 ОС+безопасность : юзер vpnadmin, SSH только по ключу, UFW(SSH,443/tcp,AWG/udp), │
+│                      fail2ban, unattended-upgrades                                 │
+│ L2 Marzban         : Docker Compose; Xray inbound VLESS+Reality :443 vision;       │
+│                      панель + REST только на 127.0.0.1                             │
+│ L3 AmneziaWG       : awg0 на UDP-порту, обфускация (Jc/Jmin/Jmax/S1/S2/H1..H4)      │
+│ L4 Эксплуатация    : systemd-таймеры (healthcheck, RU-check, backup)               │
 └────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## Key decisions
+## Ключевые решения
 
-**Terraform for provisioning, Ansible for config.** Terraform's state gives
-idempotency (NFR-1) and a clean `destroy`/recreate for IP rotation (FR-1.5,
-FR-8.3). Ansible is agentless and idempotent for hardening + Docker + Marzban +
-AWG. `vpnctl` is the single entrypoint that drives both and talks to the Marzban
-API directly.
+**Terraform для провижининга, Ansible для конфигурации.** Стейт Terraform даёт
+идемпотентность (NFR-1) и чистый `destroy`/пересоздание для ротации IP (FR-1.5,
+FR-8.3). Ansible — безагентный и идемпотентный для харденинга + Docker + Marzban +
+AWG. `vpnctl` — единая точка входа, которая управляет обоими и напрямую общается с
+API Marzban.
 
-**Provider adapters (NFR-6).** Each provider is a self-contained Terraform module
-under `infra/providers/<name>` with an identical variable/output interface, so
-`vpnctl` can drive any of them and new ones drop in without touching the core.
-Bundled: **UpCloud** (Finland) and **Scaleway** (NL/FR) — deliberately *not* the
-"засвеченные" big clouds (Hetzner/DO/OVH/Vultr/AWS/GCP) whose ranges hit RU
-block-lists fast (ТЗ §3.3, FR-1.2).
+**Адаптеры провайдеров (NFR-6).** Каждый провайдер — самодостаточный
+Terraform-модуль в `infra/providers/<name>` с одинаковым интерфейсом переменных и
+выходов, поэтому `vpnctl` может управлять любым из них, а новые добавляются без
+правок ядра. В комплекте: **UpCloud** (Финляндия) и **Scaleway** (NL/FR) —
+намеренно *не* «засвеченные» крупные облака (Hetzner/DO/OVH/Vultr/AWS/GCP), чьи
+диапазоны быстро попадают в блок-листы РФ (ТЗ §3.3, FR-1.2).
 
-**Reality is generated, not templated by hand (FR-4).** `reality.py` produces the
-x25519 keypair + shortId and asserts the ТЗ invariants on every build:
-port `443`, `flow=xtls-rprx-vision`, `fingerprint=chrome` (О-2), and **no** PQ-TLS
-or new Vision "seed" defaults in the inbound (О-4). The SNI is validated
-(`sni.py`: reachable + TLS 1.3 + HTTP/2, overused-domain denylist) before use.
+**Reality генерируется, а не пишется руками (FR-4).** `reality.py` создаёт пару
+x25519-ключей + shortId и на каждой сборке проверяет инварианты ТЗ: порт `443`,
+`flow=xtls-rprx-vision`, `fingerprint=chrome` (О-2) и **отсутствие** PQ-TLS или
+новых Vision-«seed» дефолтов в inbound (О-4). SNI валидируется (`sni.py`:
+доступность + TLS 1.3 + HTTP/2, чёрный список заезженных доменов) перед
+использованием.
 
-**AmneziaWG params are generated once and shared.** Server and every client embed
-the same Jc/Jmin/Jmax/S1/S2/H1..H4 (`awg.py`), because a mismatch breaks the
-handshake. The server config includes NAT masquerade so traffic actually routes.
+**Параметры AmneziaWG генерируются один раз и общие.** Сервер и каждый клиент
+несут одинаковые Jc/Jmin/Jmax/S1/S2/H1..H4 (`awg.py`), потому что рассинхрон ломает
+хендшейк. Серверный конфиг включает NAT masquerade, чтобы трафик реально
+маршрутизировался.
 
-**Panel is never on the public internet (О-3 / NFR-2).** Marzban binds
-`127.0.0.1`; the operator reaches it over an SSH tunnel. UFW never opens the panel
-port. An optional domain + TLS mode exists for teams that want a stable
-subscription host (also what makes IP rotation transparent to clients).
+**Панель никогда не в публичном интернете (О-3 / NFR-2).** Marzban слушает
+`127.0.0.1`; оператор ходит через SSH-туннель. UFW никогда не открывает порт панели.
+Есть опциональный режим с доменом + TLS для команд, которым нужен стабильный хост
+subscription (он же делает ротацию IP прозрачной для клиентов).
 
-## Backup / rotation model
+## Модель бэкапов / ротации
 
-- **Backup (FR-8.1):** tar.gz of the Marzban DB + `xray_config.json` + AWG config +
-  user export. Secret files (`.env`, keys) are encrypted with a passphrase-derived
-  Fernet key *before* entering the archive — the archive never holds plaintext
-  secrets.
-- **Rotation (FR-8.3):** export users → provision fresh VPS → deploy+configure →
-  import users → switch subscription → drop the old box. **Subscription
-  continuity** (no client reinstall) needs a stable subscription host: set
-  `MARZBAN_PANEL_DOMAIN` and repoint its DNS to the new IP. Without a domain,
-  subscription links are IP-bound and clients must reimport.
+- **Бэкап (FR-8.1):** tar.gz из БД Marzban + `xray_config.json` + конфига AWG +
+  экспорта пользователей. Секретные файлы (`.env`, ключи) шифруются
+  Fernet-ключом, выведенным из парольной фразы, *до* попадания в архив — сам архив
+  никогда не содержит секретов в открытом виде.
+- **Ротация (FR-8.3):** экспорт пользователей → поднять новый VPS →
+  deploy+configure → импорт пользователей → переключить subscription → погасить
+  старый сервер. **Непрерывность subscription** (без переустановки у клиента)
+  требует стабильного хоста subscription: задать `MARZBAN_PANEL_DOMAIN` и
+  перенаправить его DNS на новый IP. Без домена subscription-ссылки привязаны к IP
+  и клиентам придётся переимпортировать.
 
-## AWG placement (FR-5.3)
+## Размещение AWG (FR-5.3)
 
-`AWG_DEPLOY_MODE=same-host` runs the backup on the Reality box (one IP; simplest).
-`separate-host` puts it on a second VPS/IP so a ban of the Reality IP leaves the
-backup reachable — recommended when availability matters (ТЗ §4 key decision).
+`AWG_DEPLOY_MODE=same-host` держит резерв на том же сервере с Reality (один IP;
+проще всего). `separate-host` выносит его на отдельный VPS/IP, чтобы бан IP с
+Reality оставлял резерв доступным — рекомендуется, когда важна доступность (ТЗ §4,
+ключевое решение).
 
-## Threat model → mitigations (ТЗ §3.3, §14)
+## Модель угроз → меры (ТЗ §3.3, §14)
 
-| Threat | Mitigation in this system |
+| Угроза | Мера в этой системе |
 |---|---|
-| IP banned in RU | RU availability monitor (FR-7.1) + fast `rotate-ip` (FR-8.3) + 2nd provider (FR-1.2) |
-| TLS "freeze" >15–20 KB | freeze-symptom probe (FR-7.2) → alert → rotate; WS+CDN is a COULD |
-| Reality burned in a region | rotate keys/SNI (`vpnctl configure`) + fail over to AWG |
-| Panel compromise | localhost-only panel, secrets out of git, fail2ban |
-| Server loss | encrypted backups + one-command restore |
+| Бан IP в РФ | мониторинг доступности из РФ (FR-7.1) + быстрый `rotate-ip` (FR-8.3) + второй провайдер (FR-1.2) |
+| «Заморозка» TLS >15–20 КБ | проба симптома (FR-7.2) → алерт → ротация; WS+CDN — это COULD |
+| Reality спалили в регионе | ротация ключей/SNI (`vpnctl configure`) + переключение на AWG |
+| Компрометация панели | панель только на localhost, секреты вне git, fail2ban |
+| Потеря сервера | зашифрованные бэкапы + восстановление одной командой |

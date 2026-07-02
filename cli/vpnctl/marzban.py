@@ -1,7 +1,7 @@
-"""Thin Marzban REST API client (FR-6.5).
+"""Тонкий клиент REST API Marzban (FR-6.5).
 
-All user operations go through the API — never direct DB edits. The panel is
-reached at 127.0.0.1 through an SSH tunnel (О-3), so the base URL is local.
+Все операции с пользователями идут через API — никаких прямых правок БД. Панель
+доступна на 127.0.0.1 через SSH-туннель (О-3), поэтому base URL локальный.
 """
 
 from __future__ import annotations
@@ -46,7 +46,7 @@ class MarzbanUser:
 
 
 class MarzbanClient:
-    """Authenticated client. Use as a context manager or call close()."""
+    """Аутентифицированный клиент. Использовать как контекст-менеджер или вызвать close()."""
 
     def __init__(
         self,
@@ -72,7 +72,7 @@ class MarzbanClient:
     def close(self) -> None:
         self._client.close()
 
-    # -- auth -----------------------------------------------------------------
+    # -- аутентификация -------------------------------------------------------
     def login(self) -> None:
         resp = self._client.post(
             "/api/admin/token",
@@ -90,14 +90,14 @@ class MarzbanClient:
     def _request(self, method: str, path: str, **kwargs: Any) -> httpx.Response:
         self._ensure_auth()
         resp = self._client.request(method, path, **kwargs)
-        if resp.status_code == 401:  # token expired -> re-login once
+        if resp.status_code == 401:  # токен истёк -> один релогин
             self.login()
             resp = self._client.request(method, path, **kwargs)
         if resp.status_code >= 400:
             raise MarzbanError(f"{method} {path} -> {resp.status_code} {resp.text}")
         return resp
 
-    # -- users ----------------------------------------------------------------
+    # -- пользователи ---------------------------------------------------------
     def create_user(
         self,
         username: str,
@@ -140,7 +140,7 @@ class MarzbanClient:
         resp = self._request("POST", f"/api/user/{username}/reset")
         return MarzbanUser.from_api(resp.json())
 
-    # -- system ---------------------------------------------------------------
+    # -- система --------------------------------------------------------------
     def system_stats(self) -> dict[str, Any]:
         return self._request("GET", "/api/system").json()
 

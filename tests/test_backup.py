@@ -8,7 +8,7 @@ from vpnctl import backup
 
 def test_encrypt_decrypt_roundtrip():
     blob = backup.encrypt_bytes(b"super secret token", "passphrase")
-    assert b"super secret token" not in blob  # ciphertext, not plaintext
+    assert b"super secret token" not in blob  # шифртекст, не открытый текст
     assert backup.decrypt_bytes(blob, "passphrase") == b"super secret token"
 
 
@@ -31,7 +31,7 @@ def test_backup_restore_roundtrip(tmp_path):
         passphrase="pw",
     )
 
-    # The secret must NOT appear in plaintext anywhere in the archive.
+    # Секрет НЕ должен встречаться в открытом виде нигде в архиве.
     with tarfile.open(archive, "r:gz") as tar:
         for m in tar.getmembers():
             f = tar.extractfile(m)

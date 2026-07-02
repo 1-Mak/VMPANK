@@ -65,5 +65,5 @@ def test_reauth_on_401_then_succeeds():
     client = make_client(handler)
     client.login()
     users = client.list_users()
-    assert calls["login"] == 2  # re-logged in after the 401
+    assert calls["login"] == 2  # повторный логин после 401
     assert users[0].username == "bob"

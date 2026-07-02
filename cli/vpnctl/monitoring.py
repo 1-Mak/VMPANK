@@ -1,12 +1,12 @@
-"""Availability + freeze detection + local healthcheck (FR-7).
+"""Доступность + детекция «заморозки» + локальный healthcheck (FR-7).
 
-Three independent checks:
-  * check_ru_availability  — is IP:443 reachable from Russian nodes? (FR-7.1)
-  * detect_freeze          — TCP connects but transfer stalls >~15-20 KB (FR-7.2)
-  * local_healthcheck      — containers / port / AWG / resources on the box (FR-7.3)
+Три независимые проверки:
+  * check_ru_availability  — доступен ли IP:443 с российских нод? (FR-7.1)
+  * detect_freeze          — TCP коннектится, но передача встаёт на >~15-20 КБ (FR-7.2)
+  * local_healthcheck      — контейнеры / порт / AWG / ресурсы на машине (FR-7.3)
 
-Network glue is thin and the parsing is factored out so the logic is testable
-without hitting the network.
+Сетевая обвязка тонкая, а парсинг вынесен отдельно, чтобы логику можно было
+тестировать без обращения к сети.
 """
 
 from __future__ import annotations
@@ -21,11 +21,11 @@ from typing import Any
 import httpx
 
 CHECKHOST_BASE = "https://check-host.net"
-# A few stable RU check-host nodes; overridable via CHECKHOST_RU_NODES.
+# Несколько стабильных RU-нод check-host; переопределяется через CHECKHOST_RU_NODES.
 DEFAULT_RU_NODES = ("ru1.node.check-host.net", "ru2.node.check-host.net", "ru3.node.check-host.net")
 
 
-# --- FR-7.1: availability from Russia ---------------------------------------
+# --- FR-7.1: доступность из России ------------------------------------------
 @dataclass
 class NodeResult:
     node: str
@@ -51,12 +51,12 @@ class AvailabilityReport:
 
 
 def parse_checkhost_results(data: dict[str, Any]) -> list[NodeResult]:
-    """Parse a /check-result/<id> payload into NodeResults.
+    """Разобрать payload /check-result/<id> в список NodeResult.
 
-    check-host TCP result per node is one of:
+    TCP-результат check-host по каждой ноде — один из:
       [{"time": 0.12, "address": "1.2.3.4"}]  -> ok
-      [{"error": "..."}]                        -> failed
-      null                                       -> still pending (treated as failed here)
+      [{"error": "..."}]                        -> сбой
+      null                                       -> ещё в ожидании (здесь как сбой)
     """
     results: list[NodeResult] = []
     for node, payload in data.items():
@@ -81,7 +81,7 @@ def check_ru_availability(
     poll_timeout: float = 20.0,
     client: httpx.Client | None = None,
 ) -> AvailabilityReport:
-    """Ask check-host.net to probe IP:port from RU nodes (FR-7.1)."""
+    """Попросить check-host.net пробить IP:port с RU-нод (FR-7.1)."""
     node_list = nodes or list(DEFAULT_RU_NODES)
     owns_client = client is None
     client = client or httpx.Client(timeout=15.0, headers={"Accept": "application/json"})
@@ -108,7 +108,7 @@ def check_ru_availability(
             client.close()
 
 
-# --- FR-7.2: freeze / shaping detection -------------------------------------
+# --- FR-7.2: детекция «заморозки» / шейпинга --------------------------------
 @dataclass
 class FreezeResult:
     connected: bool
@@ -123,14 +123,14 @@ def detect_freeze(
     threshold_kb: int = 18,
     timeout: float = 10.0,
 ) -> FreezeResult:
-    """Heuristic for the ТСПУ "freeze" symptom (FR-7.2).
+    """Эвристика симптома «заморозки» ТСПУ (FR-7.2).
 
-    Establishes TCP+TLS and tries to pull > threshold_kb of bytes. If the
-    connection opens but the transfer stalls below the threshold, that matches
-    the "connect ok, data doesn't flow" symptom and we flag it as frozen.
+    Устанавливает TCP+TLS и пытается вытянуть > threshold_kb байт. Если соединение
+    открывается, но передача встаёт ниже порога — это соответствует симптому
+    «коннект есть, данные не идут», и мы помечаем это как frozen.
 
-    NOTE: this is a symptom probe against the endpoint; the definitive check is a
-    real bulk download through an established client tunnel.
+    ЗАМЕЧАНИЕ: это проба симптома против эндпоинта; окончательная проверка —
+    реальная массовая закачка через установленный клиентский туннель.
     """
     threshold = threshold_kb * 1024
     try:
@@ -166,7 +166,7 @@ def detect_freeze(
     return FreezeResult(True, transferred, frozen, detail)
 
 
-# --- FR-7.3: local healthcheck ----------------------------------------------
+# --- FR-7.3: локальный healthcheck ------------------------------------------
 @dataclass
 class HealthReport:
     checks: dict[str, bool] = field(default_factory=dict)

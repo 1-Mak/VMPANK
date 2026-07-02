@@ -1,4 +1,4 @@
-# Secrets — never commit (FR-9.1)
+# Секреты — никогда не коммитить (FR-9.1)
 .env
 *.env
 !.env.example
@@ -9,17 +9,17 @@ secrets/
 id_ed25519*
 id_rsa*
 
-# Generated configs / local state (contain keys, IPs)
+# Сгенерированные конфиги / локальное состояние (содержат ключи, IP)
 .build/
 .state/
 
-# Backups (FR-8, gitignored artifacts)
+# Бэкапы (FR-8, gitignored-артефакты)
 backups/
 *.tar.gz
 *.tar.gz.age
 *.tar.gz.gpg
 
-# Terraform state (contains secrets/IPs)
+# Стейт Terraform (содержит секреты/IP)
 infra/**/.terraform/
 infra/**/*.tfstate
 infra/**/*.tfstate.*
@@ -45,7 +45,7 @@ build/
 .coverage
 htmlcov/
 
-# OS / editor
+# ОС / редактор
 .DS_Store
 Thumbs.db
 .idea/

@@ -1,7 +1,7 @@
-# Local healthcheck on the server (FR-7.3). Install into /etc/systemd/system/
-# and enable the matching .timer. Exits non-zero -> journal records the failure.
+# Локальный healthcheck на сервере (FR-7.3). Положить в /etc/systemd/system/ и
+# включить парный .timer. Ненулевой выход -> журнал фиксирует сбой.
 [Unit]
-Description=vpn-selfhost local healthcheck
+Description=vpn-selfhost локальный healthcheck
 
 [Service]
 Type=oneshot

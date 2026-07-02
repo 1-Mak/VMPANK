@@ -1,33 +1,33 @@
-# infra/ — Terraform provisioning (FR-1)
+# infra/ — провижининг на Terraform (FR-1)
 
-One self-contained module per provider under `providers/<name>`, each exposing
-the **same interface** so `vpnctl` can drive any of them (NFR-6):
+Один самодостаточный модуль на провайдера в `providers/<name>`, каждый с
+**одинаковым интерфейсом**, чтобы `vpnctl` мог управлять любым из них (NFR-6):
 
-| variable          | meaning                                   |
-|-------------------|-------------------------------------------|
-| `region`          | provider zone (Finland/NL/DE/SE preferred)|
-| `plan`            | instance size (default ~1 vCPU / 2 GB)    |
-| `image`           | Ubuntu 22.04/24.04 LTS                     |
-| `ssh_public_key`  | operator key authorized for root          |
-| `hostname`        | server hostname                           |
+| переменная        | смысл                                          |
+|-------------------|------------------------------------------------|
+| `region`          | зона провайдера (предпочтительно Финляндия/NL/DE/SE) |
+| `plan`            | размер инстанса (по умолчанию ~1 vCPU / 2 GB)  |
+| `image`           | Ubuntu 22.04/24.04 LTS                          |
+| `ssh_public_key`  | ключ оператора, авторизованный для root         |
+| `hostname`        | имя хоста сервера                               |
 
-Every module outputs `ipv4`, which `vpnctl provision` reads and stores.
+Каждый модуль отдаёт выход `ipv4`, который читает и сохраняет `vpnctl provision`.
 
-## Why these providers
+## Почему эти провайдеры
 
-The ТЗ (§3.3, FR-1.2) warns that the big "засвеченные" clouds (Hetzner, DO,
-OVH, Vultr, AWS, GCP) have IP ranges that land on RU block-lists fast. The two
-bundled adapters — **UpCloud** (Finland) and **Scaleway** (NL/FR) — are EU hosts
-with cleaner reputation *and* first-class Terraform providers. IP reputation
-still changes constantly (Д-3), so `vpnctl monitor ru` + fast rotation
-(`vpnctl rotate-ip`) are the real mitigation.
+ТЗ (§3.3, FR-1.2) предупреждает, что крупные «засвеченные» облака (Hetzner, DO,
+OVH, Vultr, AWS, GCP) имеют диапазоны IP, которые быстро попадают в блок-листы РФ.
+Два включённых адаптера — **UpCloud** (Финляндия) и **Scaleway** (NL/FR) — это
+хостеры в ЕС с более чистой репутацией *и* первоклассными Terraform-провайдерами.
+Репутация IP всё равно постоянно меняется (Д-3), поэтому `vpnctl monitor ru` +
+быстрая ротация (`vpnctl rotate-ip`) — это и есть реальная мера.
 
-## Adding a provider
+## Добавить провайдера
 
-Create `providers/<name>/` with `versions.tf`, `variables.tf` (the interface
-above), `main.tf`, `outputs.tf` (`ipv4`), then add `<name>` to
-`SUPPORTED_PROVIDERS` in `cli/vpnctl/provision.py` and map its credential env
-vars in `_pass_provider_credentials`.
+Создай `providers/<name>/` с `versions.tf`, `variables.tf` (интерфейс выше),
+`main.tf`, `outputs.tf` (`ipv4`), затем добавь `<name>` в `SUPPORTED_PROVIDERS` в
+`cli/vpnctl/provision.py` и пропиши его переменные окружения с кредами в
+`_pass_provider_credentials`.
 
-Credentials are never written to disk — `vpnctl` exports them as the provider's
-env vars for the Terraform run only (FR-9).
+Креды никогда не пишутся на диск — `vpnctl` экспортирует их как переменные
+окружения провайдера только на время запуска Terraform (FR-9).

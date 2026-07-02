@@ -31,7 +31,7 @@ def test_inbound_enforces_o2_invariants():
     assert obj["streamSettings"]["security"] == "reality"
     assert rs["serverNames"] == ["www.example.com"]
     assert rs["fingerprint"] == "chrome"
-    reality.validate_inbound(inbound)  # must not raise
+    reality.validate_inbound(inbound)  # не должно бросить исключение
 
 
 def test_validate_rejects_wrong_flow_and_port():
@@ -60,6 +60,6 @@ def test_build_xray_config_is_json_serialisable():
     cfg = reality.build_xray_config(inbound)
     parsed = json.loads(reality.dumps(cfg))
     assert parsed["inbounds"][0]["port"] == 443
-    # О-4: no PQ-TLS / seed defaults leaked into realitySettings
+    # О-4: PQ-TLS / seed-дефолты не просочились в realitySettings
     rs = parsed["inbounds"][0]["streamSettings"]["realitySettings"]
     assert "mldsa65Seed" not in rs and "pqv" not in rs

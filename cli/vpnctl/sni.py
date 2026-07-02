@@ -1,14 +1,14 @@
-"""Reality SNI/dest candidate validation (FR-4.3).
+"""Валидация кандидатов SNI/dest для Reality (FR-4.3).
 
-A good Reality masquerade domain must (technical, machine-checkable here):
-  * be reachable on :443,
-  * negotiate TLS 1.3,
-  * advertise HTTP/2 (ALPN h2),
-  * be hosted abroad.
+Хороший маскировочный домен для Reality должен (технически, проверяемо здесь):
+  * быть доступен на :443,
+  * согласовывать TLS 1.3,
+  * анонсировать HTTP/2 (ALPN h2),
+  * хоститься за рубежом.
 
-Reputational criteria ("not blocked in RU", "not overused") cannot be fully
-verified offline; we flag popular/overused domains from a denylist and leave a
-final regional check to the operator + the check-host probe in monitoring.py.
+Репутационные критерии («не заблокирован в РФ», «не заезжен») офлайн полностью не
+проверить; популярные/заезженные домены помечаем по чёрному списку, а финальную
+региональную проверку оставляем оператору + пробе check-host в monitoring.py.
 """
 
 from __future__ import annotations
@@ -17,8 +17,8 @@ import socket
 import ssl
 from dataclasses import dataclass
 
-# Sane defaults: large foreign sites that terminate TLS 1.3 + HTTP/2 themselves.
-# Treat as a starting point — validate per-region before use (Д-3).
+# Разумные дефолты: крупные зарубежные сайты, сами терминирующие TLS 1.3 + HTTP/2.
+# Считать отправной точкой — проверять по региону перед использованием (Д-3).
 DEFAULT_CANDIDATES: tuple[str, ...] = (
     "www.samsung.com",
     "www.nvidia.com",
@@ -29,7 +29,7 @@ DEFAULT_CANDIDATES: tuple[str, ...] = (
     "www.asus.com",
 )
 
-# Domains that are famously overused as Reality SNIs — higher fingerprinting risk.
+# Домены, известные как заезженные SNI для Reality — выше риск фингерпринтинга.
 OVERUSED_DENYLIST: frozenset[str] = frozenset(
     {
         "www.microsoft.com",
@@ -71,7 +71,7 @@ class SniCheck:
 
 
 def _probe(domain: str, port: int = 443, timeout: float = 6.0) -> tuple[str | None, str | None]:
-    """Return (tls_version, alpn_protocol). Raises OSError/ssl.SSLError on failure."""
+    """Вернуть (tls_version, alpn_protocol). Бросает OSError/ssl.SSLError при сбое."""
     ctx = ssl.create_default_context()
     ctx.minimum_version = ssl.TLSVersion.TLSv1_2
     ctx.set_alpn_protocols(["h2", "http/1.1"])
@@ -83,7 +83,7 @@ def _probe(domain: str, port: int = 443, timeout: float = 6.0) -> tuple[str | No
 
 
 def check_candidate(domain: str, timeout: float = 6.0) -> SniCheck:
-    """Run the full technical + reputational check for one domain."""
+    """Полная техническая + репутационная проверка одного домена."""
     result = SniCheck(domain=domain, overused=domain.lower() in OVERUSED_DENYLIST)
     try:
         version, alpn = _probe(domain, timeout=timeout)
@@ -96,7 +96,7 @@ def check_candidate(domain: str, timeout: float = 6.0) -> SniCheck:
 
 
 def pick_first_valid(candidates: list[str] | None = None, timeout: float = 6.0) -> SniCheck | None:
-    """Return the first candidate that passes all checks, or None."""
+    """Вернуть первого кандидата, прошедшего все проверки, или None."""
     for domain in candidates or list(DEFAULT_CANDIDATES):
         check = check_candidate(domain, timeout=timeout)
         if check.ok:

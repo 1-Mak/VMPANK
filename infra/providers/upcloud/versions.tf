@@ -8,6 +8,6 @@ terraform {
   }
 }
 
-# Credentials come from env: UPCLOUD_USERNAME / UPCLOUD_PASSWORD (set by vpnctl,
-# never written to disk — FR-9).
+# Креды берутся из окружения: UPCLOUD_USERNAME / UPCLOUD_PASSWORD (задаются vpnctl,
+# на диск не пишутся — FR-9).
 provider "upcloud" {}

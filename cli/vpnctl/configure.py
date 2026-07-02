@@ -1,9 +1,9 @@
-"""Turn settings into on-disk protocol configs (FR-4, FR-5).
+"""Превращение настроек в конфиги протоколов на диске (FR-4, FR-5).
 
-Generates a validated xray_config.json (Reality) and an AmneziaWG server config
-into the build dir. Key material is generated when absent so `configure` is
-runnable end-to-end; generated secrets are surfaced to the operator to persist
-in .env.
+Генерирует валидированный xray_config.json (Reality) и серверный конфиг AmneziaWG
+в build-директорию. Ключевой материал генерируется при отсутствии, чтобы
+`configure` был запускаем end-to-end; сгенерированные секреты выводятся оператору
+для сохранения в .env.
 """
 
 from __future__ import annotations
@@ -21,11 +21,11 @@ REALITY_INBOUND_TAG = "vless-reality-in"
 class GeneratedReality:
     inbound: reality.RealityInbound
     config_path: Path
-    generated_private_key: str | None  # set if we had to generate one
+    generated_private_key: str | None  # задан, если пришлось сгенерировать
 
 
 def resolve_reality(settings: Settings) -> tuple[reality.RealityInbound, str | None]:
-    """Build a validated Reality inbound, generating key/shortId if missing."""
+    """Собрать валидированный inbound Reality, генерируя key/shortId при отсутствии."""
     if not settings.reality_sni:
         raise ValueError("REALITY_SNI is required (run `vpnctl sni check` to pick one)")
 

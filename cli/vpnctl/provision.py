@@ -1,10 +1,10 @@
-"""Terraform provisioning wrapper (FR-1).
+"""Обёртка провижининга Terraform (FR-1).
 
-Each provider is a self-contained Terraform module under infra/providers/<name>
-exposing a uniform interface (vars: region, plan, image, ssh_public_key;
-output: ipv4). This wrapper selects the module, writes a gitignored tfvars from
-settings, and runs init/apply/destroy. Idempotency comes from Terraform state
-(NFR-1); `destroy` enables IP rotation (FR-1.5, FR-8.3).
+Каждый провайдер — самодостаточный Terraform-модуль в infra/providers/<name> с
+единым интерфейсом (переменные: region, plan, image, ssh_public_key; выход: ipv4).
+Эта обёртка выбирает модуль, пишет gitignored tfvars из настроек и запускает
+init/apply/destroy. Идемпотентность даёт стейт Terraform (NFR-1); `destroy`
+включает ротацию IP (FR-1.5, FR-8.3).
 """
 
 from __future__ import annotations
@@ -27,7 +27,7 @@ def provider_dir(provider: str, infra_root: Path) -> Path:
 
 
 def build_tfvars(settings: Settings) -> dict[str, str]:
-    """Map operator settings to the module's uniform variable interface."""
+    """Отобразить настройки оператора на единый интерфейс переменных модуля."""
     pubkey = Path(settings.ssh_public_key_path).expanduser().read_text(encoding="utf-8").strip()
     return {
         "region": settings.vps_region,
@@ -47,7 +47,7 @@ def _run(cmd: list[str], cwd: Path) -> None:
 
 
 def terraform_apply(settings: Settings, infra_root: Path) -> str:
-    """Init + apply the selected provider module; return the VPS IPv4."""
+    """Init + apply выбранного модуля провайдера; вернуть IPv4 VPS."""
     wd = provider_dir(settings.vps_provider, infra_root)
     write_tfvars(build_tfvars(settings), wd / "terraform.tfvars.json")
     _pass_provider_credentials(settings)
@@ -70,7 +70,7 @@ def terraform_destroy(settings: Settings, infra_root: Path) -> None:
 
 
 def _pass_provider_credentials(settings: Settings) -> None:
-    """Export provider creds as env vars Terraform expects (never written to disk)."""
+    """Экспортировать креды провайдера как env-переменные Terraform (на диск не пишутся)."""
     import os
 
     if settings.vps_provider == "upcloud":

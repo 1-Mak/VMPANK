@@ -17,7 +17,7 @@ def base_env(monkeypatch, tmp_path):
 def test_resolve_reality_generates_key_when_missing(base_env):
     s = settings_mod.load(env_file=None)
     inbound, generated = configure.resolve_reality(s)
-    assert generated is not None  # a private key was generated
+    assert generated is not None  # приватный ключ был сгенерирован
     reality.validate_inbound(inbound)
     assert inbound.public_key == reality.public_from_private(inbound.private_key)
 

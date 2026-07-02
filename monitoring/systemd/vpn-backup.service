@@ -1,6 +1,6 @@
-# Scheduled backup (FR-8.1). Encrypts secrets; writes to BACKUP_DIR.
+# Плановый бэкап (FR-8.1). Шифрует секреты; пишет в BACKUP_DIR.
 [Unit]
-Description=vpn-selfhost backup
+Description=vpn-selfhost бэкап
 
 [Service]
 Type=oneshot

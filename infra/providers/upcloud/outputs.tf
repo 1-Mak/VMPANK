@@ -1,6 +1,6 @@
-# Uniform output consumed by vpnctl (provision.terraform_apply reads `ipv4`).
+# Единый выход, который читает vpnctl (provision.terraform_apply читает `ipv4`).
 output "ipv4" {
-  description = "Public IPv4 of the VPS"
+  description = "Публичный IPv4 VPS"
   value       = upcloud_server.vpn.network_interface[0].ip_address
 }
 

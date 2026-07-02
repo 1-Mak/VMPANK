@@ -1,4 +1,4 @@
-"""Repo-relative paths and tiny operator-state persistence."""
+"""Пути относительно репозитория и маленькое хранилище состояния оператора."""
 
 from __future__ import annotations
 
@@ -7,8 +7,8 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 INFRA_ROOT = REPO_ROOT / "infra"
 ANSIBLE_ROOT = REPO_ROOT / "ansible"
-BUILD_DIR = REPO_ROOT / ".build"  # generated configs (gitignored)
-STATE_DIR = REPO_ROOT / ".state"  # current IP etc. (gitignored)
+BUILD_DIR = REPO_ROOT / ".build"  # сгенерированные конфиги (gitignored)
+STATE_DIR = REPO_ROOT / ".state"  # текущий IP и т.п. (gitignored)
 
 
 def save_ip(ip: str) -> None:

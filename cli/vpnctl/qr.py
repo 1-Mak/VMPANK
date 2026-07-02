@@ -1,4 +1,4 @@
-"""QR helpers for subscription links / AWG configs (FR-5.2, FR-6.1)."""
+"""QR-хелперы для subscription-ссылок / конфигов AWG (FR-5.2, FR-6.1)."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ import qrcode
 
 
 def to_ascii(data: str) -> str:
-    """Render a QR code as terminal-printable ASCII."""
+    """Отрендерить QR-код как ASCII для печати в терминале."""
     qr = qrcode.QRCode(border=1)
     qr.add_data(data)
     qr.make(fit=True)
@@ -20,7 +20,7 @@ def to_ascii(data: str) -> str:
 
 
 def to_png(data: str, path: str | Path) -> Path:
-    """Write a PNG QR code and return the path."""
+    """Записать QR-код в PNG и вернуть путь."""
     img = qrcode.make(data)
     out = Path(path)
     img.save(out)

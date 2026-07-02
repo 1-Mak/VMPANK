@@ -1,7 +1,7 @@
-"""Operator settings loaded from environment / .env (FR-9, §10).
+"""Настройки оператора, загружаемые из окружения / .env (FR-9, §10).
 
-Secrets live only in the environment or the .env file (mode 600), never in the
-repo. This module is the single place that reads them.
+Секреты живут только в окружении или файле .env (права 600), никогда в репозитории.
+Этот модуль — единственное место, которое их читает.
 """
 
 from __future__ import annotations
@@ -31,7 +31,7 @@ def _get_bool(name: str, default: bool = False) -> bool:
 
 @dataclass
 class Settings:
-    # provider
+    # провайдер
     vps_provider: str
     vps_api_token: str
     vps_api_user: str
@@ -61,29 +61,29 @@ class Settings:
     awg_deploy_mode: str
     awg_separate_host: str
     awg_separate_ssh_port: int
-    # monitoring
+    # мониторинг
     telegram_bot_token: str
     telegram_chat_id: str
     checkhost_enabled: bool
     checkhost_ru_nodes: str
     monitor_freeze_threshold_kb: int
-    # backups
+    # бэкапы
     backup_dir: str
     backup_remote: str
     backup_passphrase: str
 
     @property
     def marzban_base_url(self) -> str:
-        """Local base URL for the Marzban API (reached via SSH tunnel, О-3)."""
+        """Локальный base URL для API Marzban (доступ через SSH-туннель, О-3)."""
         return f"http://127.0.0.1:{self.marzban_port}"
 
     def missing(self, keys: list[str]) -> list[str]:
-        """Return the subset of attribute names whose value is falsy."""
+        """Вернуть подмножество имён атрибутов, значение которых пустое (falsy)."""
         return [k for k in keys if not getattr(self, k)]
 
 
 def load(env_file: str | os.PathLike[str] | None = ".env") -> Settings:
-    """Load settings from the given .env file (if present) and the environment."""
+    """Загрузить настройки из указанного .env (если есть) и из окружения."""
     if env_file and Path(env_file).exists():
         load_dotenv(env_file, override=False)
     return Settings(

@@ -1,34 +1,34 @@
 ---
-# OS hardening (FR-2). Harden-by-default (NFR-2).
+# Харденинг ОС (FR-2). Безопасно по умолчанию (NFR-2).
 
-- name: Create unprivileged sudo user (FR-2.1)
+- name: Создать непривилегированного sudo-пользователя (FR-2.1)
   ansible.builtin.user:
     name: vpnadmin
     groups: sudo
     shell: /bin/bash
     create_home: true
 
-- name: Install operator SSH key for vpnadmin
+- name: Установить SSH-ключ оператора для vpnadmin
   ansible.posix.authorized_key:
     user: vpnadmin
     key: "{{ operator_ssh_key }}"
     state: present
   when: operator_ssh_key | length > 0
 
-- name: Passwordless sudo for vpnadmin
+- name: Беспарольный sudo для vpnadmin
   ansible.builtin.copy:
     dest: /etc/sudoers.d/vpnadmin
     content: "vpnadmin ALL=(ALL) NOPASSWD:ALL\n"
     mode: "0440"
     validate: "visudo -cf %s"
 
-- name: Ensure port 443 is free before Xray binds it (FR-2.5)
+- name: Убедиться, что порт 443 свободен до бинда Xray (FR-2.5)
   ansible.builtin.shell: "ss -ltn '( sport = :443 )' | tail -n +2"
   register: port443
   changed_when: false
   failed_when: port443.stdout | trim | length > 0
 
-- name: Harden sshd (disable root login + password auth) (FR-2.2)
+- name: Харденинг sshd (отключить вход root + вход по паролю) (FR-2.2)
   ansible.builtin.copy:
     dest: /etc/ssh/sshd_config.d/00-hardening.conf
     mode: "0644"
@@ -40,13 +40,13 @@
       PubkeyAuthentication yes
   notify: Restart sshd
 
-- name: Install security packages (FR-2.4)
+- name: Установить пакеты безопасности (FR-2.4)
   ansible.builtin.apt:
     name: [ufw, fail2ban, unattended-upgrades]
     state: present
     update_cache: true
 
-- name: Enable unattended-upgrades
+- name: Включить unattended-upgrades
   ansible.builtin.copy:
     dest: /etc/apt/apt.conf.d/20auto-upgrades
     mode: "0644"
@@ -54,7 +54,7 @@
       APT::Periodic::Update-Package-Lists "1";
       APT::Periodic::Unattended-Upgrade "1";
 
-- name: fail2ban sshd jail (FR-2.4)
+- name: Jail sshd для fail2ban (FR-2.4)
   ansible.builtin.copy:
     dest: /etc/fail2ban/jail.d/sshd.local
     mode: "0644"
@@ -66,37 +66,37 @@
       bantime = 1h
   notify: Restart fail2ban
 
-# UFW: only SSH, 443/tcp and the AWG UDP port are open (FR-2.3). Panel port
-# 8000 is NOT opened — reachable only via SSH tunnel (О-3).
-- name: UFW default deny incoming
+# UFW: открыты только SSH, 443/tcp и UDP-порт AWG (FR-2.3). Порт панели 8000 НЕ
+# открывается — доступ только через SSH-туннель (О-3).
+- name: UFW по умолчанию запретить входящие
   community.general.ufw:
     direction: incoming
     policy: deny
 
-- name: UFW default allow outgoing
+- name: UFW по умолчанию разрешить исходящие
   community.general.ufw:
     direction: outgoing
     policy: allow
 
-- name: UFW allow SSH
+- name: UFW разрешить SSH
   community.general.ufw:
     rule: allow
     port: "{{ ssh_hardened_port }}"
     proto: tcp
 
-- name: UFW allow Reality 443/tcp (О-2)
+- name: UFW разрешить Reality 443/tcp (О-2)
   community.general.ufw:
     rule: allow
     port: "443"
     proto: tcp
 
-- name: UFW allow AmneziaWG udp
+- name: UFW разрешить AmneziaWG udp
   community.general.ufw:
     rule: allow
     port: "{{ awg_port }}"
     proto: udp
   when: awg_deploy_mode == 'same-host'
 
-- name: Enable UFW
+- name: Включить UFW
   community.general.ufw:
     state: enabled

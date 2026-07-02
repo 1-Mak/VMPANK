@@ -1,18 +1,18 @@
 ---
-# AmneziaWG backup protocol (FR-5). Same-host mode; separate-host uses the same
-# role against a second inventory host.
-- name: Add AmneziaWG PPA
+# Резервный протокол AmneziaWG (FR-5). Режим same-host; separate-host использует
+# ту же роль против второго хоста в инвентаре.
+- name: Добавить PPA AmneziaWG
   ansible.builtin.apt_repository:
     repo: ppa:amnezia/ppa
     state: present
 
-- name: Install AmneziaWG
+- name: Установить AmneziaWG
   ansible.builtin.apt:
     name: [amneziawg, amneziawg-tools]
     state: present
     update_cache: true
 
-- name: Enable IPv4 forwarding
+- name: Включить форвардинг IPv4
   ansible.posix.sysctl:
     name: net.ipv4.ip_forward
     value: "1"
@@ -20,20 +20,20 @@
     state: present
     reload: true
 
-- name: Ensure config directory
+- name: Создать директорию конфига
   ansible.builtin.file:
     path: /etc/amnezia/amneziawg
     state: directory
     mode: "0700"
 
-- name: Push generated awg0.conf (FR-5.1)
+- name: Выкатить сгенерированный awg0.conf (FR-5.1)
   ansible.builtin.copy:
     src: "{{ awg_config_path }}"
     dest: /etc/amnezia/amneziawg/awg0.conf
-    mode: "0600"          # secret (FR-9.3)
+    mode: "0600"          # секрет (FR-9.3)
   notify: Restart awg
 
-- name: Enable awg-quick@awg0 (auto-start after reboot, NFR-3)
+- name: Включить awg-quick@awg0 (авто-старт после ребута, NFR-3)
   ansible.builtin.systemd:
     name: awg-quick@awg0
     enabled: true

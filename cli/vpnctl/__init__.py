@@ -1,10 +1,10 @@
-"""vpnctl — operator CLI for a self-hosted, DPI-resistant VPN.
+"""vpnctl — CLI оператора для self-hosted VPN, устойчивого к DPI.
 
-Layers (see ARCHITECTURE.md):
-  provision  -> Terraform (infra/)      : create/converge the VPS
-  deploy     -> Ansible (ansible/)      : harden OS + Marzban + AmneziaWG
-  configure  -> reality/awg generators  : push protocol configs
-  users/...  -> Marzban REST API        : day-2 operations
+Слои (см. ARCHITECTURE.md):
+  provision  -> Terraform (infra/)      : создать/привести VPS в нужное состояние
+  deploy     -> Ansible (ansible/)      : харденинг ОС + Marzban + AmneziaWG
+  configure  -> генераторы reality/awg   : выкатить конфиги протоколов
+  users/...  -> Marzban REST API        : эксплуатация (day-2)
 """
 
 __version__ = "0.1.0"

@@ -1,5 +1,5 @@
 [Unit]
-Description=Run vpn-selfhost healthcheck every 5 minutes (FR-7)
+Description=Запускать healthcheck vpn-selfhost каждые 5 минут (FR-7)
 
 [Timer]
 OnBootSec=2min

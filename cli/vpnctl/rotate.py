@@ -1,12 +1,13 @@
-"""IP rotation orchestration (FR-8.3).
+"""Оркестрация ротации IP (FR-8.3).
 
-Sequence: provision a fresh VPS -> restore state -> migrate users -> switch the
-subscription so clients auto-pull the new server -> tear down the old VPS.
+Последовательность: поднять свежий VPS -> восстановить состояние -> мигрировать
+пользователей -> переключить subscription, чтобы клиенты сами подтянули новый
+сервер -> погасить старый VPS.
 
-Subscription continuity (so clients need no reinstall) requires a *stable*
-subscription URL. That means the panel is fronted by a stable domain
-(MARZBAN_PANEL_DOMAIN) and rotation repoints that domain's DNS to the new IP.
-Without a domain, subscription links are IP-bound and clients must reimport.
+Непрерывность subscription (чтобы клиентам не переустанавливать) требует
+*стабильного* URL subscription. Значит, панель фронтится стабильным доменом
+(MARZBAN_PANEL_DOMAIN), а ротация перенаправляет DNS этого домена на новый IP.
+Без домена subscription-ссылки привязаны к IP, и клиентам придётся переимпортировать.
 """
 
 from __future__ import annotations
@@ -37,7 +38,7 @@ def rotate(
     destroy_old: Callable[[str], None],
     old_ip: str,
 ) -> RotationPlan:
-    """Run the rotation using injected building blocks (keeps this testable)."""
+    """Выполнить ротацию через внедрённые строительные блоки (для тестируемости)."""
     log.info("rotation: exporting users from %s", old_ip)
     users = export_current_users()
 

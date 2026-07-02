@@ -1,6 +1,6 @@
-# Single VPS with a public IPv4, root SSH key, minimal footprint (FR-1.1/1.3).
-# Idempotent by virtue of Terraform state (NFR-1); `terraform destroy` removes
-# everything for IP rotation (FR-1.5).
+# Один VPS с публичным IPv4, SSH-ключом root, минимальным footprint (FR-1.1/1.3).
+# Идемпотентность за счёт стейта Terraform (NFR-1); `terraform destroy` сносит всё
+# для ротации IP (FR-1.5).
 
 resource "upcloud_server" "vpn" {
   hostname = var.hostname
@@ -22,6 +22,6 @@ resource "upcloud_server" "vpn" {
     create_password = false
   }
 
-  # Keep the box reproducible; real config is done by Ansible afterwards.
+  # Держим машину воспроизводимой; реальная настройка делается Ansible'ом после.
   metadata = true
 }

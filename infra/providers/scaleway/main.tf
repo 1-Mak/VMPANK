@@ -1,6 +1,6 @@
-# Single VPS with a reserved public IP. SSH key injected via cloud-init so the
-# module is self-contained. Terraform state gives idempotency (NFR-1);
-# `terraform destroy` supports IP rotation (FR-1.5).
+# Один VPS с зарезервированным публичным IP. SSH-ключ прокидывается через cloud-init,
+# чтобы модуль был самодостаточным. Стейт Terraform даёт идемпотентность (NFR-1);
+# `terraform destroy` поддерживает ротацию IP (FR-1.5).
 
 resource "scaleway_instance_ip" "public" {}
 

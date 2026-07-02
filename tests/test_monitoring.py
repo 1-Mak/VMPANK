@@ -5,7 +5,7 @@ def test_parse_checkhost_results_mixed():
     data = {
         "ru1.node.check-host.net": [{"time": 0.123, "address": "1.2.3.4"}],
         "ru2.node.check-host.net": [{"error": "Timeout"}],
-        "ru3.node.check-host.net": None,  # still pending
+        "ru3.node.check-host.net": None,  # ещё в ожидании
     }
     results = {r.node: r for r in monitoring.parse_checkhost_results(data)}
     assert results["ru1.node.check-host.net"].ok

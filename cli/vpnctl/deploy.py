@@ -1,8 +1,8 @@
-"""Ansible deploy wrapper (FR-2, FR-3, FR-5).
+"""Обёртка деплоя Ansible (FR-2, FR-3, FR-5).
 
-Generates an inventory from the provisioned IP + operator settings and runs the
-hardening/deploy playbook. Extra vars carry ports, versions and the generated
-Reality/AWG material so playbooks stay declarative.
+Генерирует инвентарь из выданного IP + настроек оператора и запускает плейбук
+харденинга/деплоя. Extra vars несут порты, версии и сгенерированный материал
+Reality/AWG, чтобы плейбуки оставались декларативными.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from .settings import Settings
 
 
 def build_inventory(ip: str, settings: Settings) -> str:
-    """Render an Ansible INI inventory for the target host."""
+    """Отрендерить INI-инвентарь Ansible для целевого хоста."""
     key = Path(settings.ssh_private_key_path).expanduser()
     return (
         "[vpn]\n"
@@ -32,7 +32,7 @@ def write_inventory(ip: str, settings: Settings, ansible_root: Path) -> Path:
 
 
 def build_extra_vars(settings: Settings, reality_config_path: str, awg_config_path: str) -> dict:
-    """Non-secret deploy knobs handed to the playbook via --extra-vars."""
+    """Несекретные параметры деплоя, передаваемые в плейбук через --extra-vars."""
     pubkey = Path(settings.ssh_public_key_path).expanduser().read_text(encoding="utf-8").strip()
     return {
         "operator_ssh_key": pubkey,

@@ -20,7 +20,7 @@ def settings(monkeypatch, tmp_path):
 
 def test_provider_dir_validates(tmp_path):
     with pytest.raises(ValueError):
-        provision.provider_dir("hetzner", tmp_path)  # засвечен + unsupported
+        provision.provider_dir("hetzner", tmp_path)  # засвечен + не поддерживается
     assert provision.provider_dir("upcloud", tmp_path).name == "upcloud"
 
 

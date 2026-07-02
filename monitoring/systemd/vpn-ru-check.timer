@@ -1,5 +1,5 @@
 [Unit]
-Description=Probe VPN reachability from RU every 10 minutes (FR-7.1)
+Description=Проверять доступность VPN из РФ каждые 10 минут (FR-7.1)
 
 [Timer]
 OnBootSec=3min

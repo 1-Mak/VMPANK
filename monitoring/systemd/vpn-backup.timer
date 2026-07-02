@@ -1,5 +1,5 @@
 [Unit]
-Description=Daily vpn-selfhost backup (FR-8.1)
+Description=Ежедневный бэкап vpn-selfhost (FR-8.1)
 
 [Timer]
 OnCalendar=*-*-* 03:30:00

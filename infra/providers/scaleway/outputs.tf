@@ -1,5 +1,5 @@
 output "ipv4" {
-  description = "Public IPv4 of the VPS"
+  description = "Публичный IPv4 VPS"
   value       = scaleway_instance_ip.public.address
 }
 

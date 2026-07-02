@@ -1,7 +1,7 @@
-"""Telegram operator alerts (FR-7.4, SHOULD).
+"""Telegram-алерты оператору (FR-7.4, SHOULD).
 
-Never logs the bot token. A missing token disables alerting gracefully so the
-rest of monitoring still runs.
+Никогда не логирует токен бота. Отсутствующий токен мягко отключает алертинг,
+чтобы остальной мониторинг продолжал работать.
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ class TelegramNotifier:
         return bool(self._token and self._chat_id)
 
     def send(self, text: str) -> bool:
-        """Send a message. Returns True on success, False if disabled/failed."""
+        """Отправить сообщение. True при успехе, False если отключено/сбой."""
         if not self.enabled:
             log.warning("Telegram not configured; alert suppressed: %s", text)
             return False
@@ -38,5 +38,5 @@ class TelegramNotifier:
             resp.raise_for_status()
             return True
         except httpx.HTTPError as exc:
-            log.error("Telegram send failed: %s", exc)  # exc never contains the token
+            log.error("Telegram send failed: %s", exc)  # exc никогда не содержит токен
             return False

@@ -1,23 +1,23 @@
-# Marzban panel + Xray-core (FR-3). Bound to 127.0.0.1 only — the panel MUST NOT
-# be reachable from the internet over HTTP (О-3 / FR-3.3). Reach it via SSH
-# tunnel:  ssh -L 8000:127.0.0.1:8000 <user>@<vps>
+# Marzban панель + Xray-core (FR-3). Слушает только 127.0.0.1 — панель НЕ должна
+# быть доступна из интернета по HTTP (О-3 / FR-3.3). Доступ через SSH-туннель:
+#   ssh -L 8000:127.0.0.1:8000 <user>@<vps>
 #
-# Image tag and Xray version are pinned via the .env in this directory (FR-3.1).
+# Тег образа и версия Xray запинены через .env в этой папке (FR-3.1).
 
 services:
   marzban:
     image: gozargah/marzban:${MARZBAN_VERSION}
-    restart: always              # survives VPS reboot (FR-3.4 / NFR-3)
+    restart: always              # переживает ребут VPS (FR-3.4 / NFR-3)
     env_file: .env
     environment:
-      UVICORN_HOST: 127.0.0.1    # bind localhost only (О-3)
+      UVICORN_HOST: 127.0.0.1    # bind только на localhost (О-3)
       UVICORN_PORT: ${MARZBAN_PORT}
       XRAY_JSON: /var/lib/marzban/xray_config.json
       XRAY_EXECUTABLE_PATH: /usr/local/bin/xray
     ports:
       - "127.0.0.1:${MARZBAN_PORT}:${MARZBAN_PORT}"
     volumes:
-      - marzban-data:/var/lib/marzban       # DB + configs persist (FR-3.4)
+      - marzban-data:/var/lib/marzban       # БД + конфиги персистентны (FR-3.4)
       - ./xray_config.json:/var/lib/marzban/xray_config.json:ro
 
 volumes:

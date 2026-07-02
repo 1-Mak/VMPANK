@@ -17,7 +17,7 @@ def test_rotate_runs_steps_in_order():
     assert plan.new_ip == "203.0.113.99"
     assert plan.users_migrated == 2
     assert plan.subscription_switched
-    # export before provision; destroy_old happens last
+    # экспорт до provision; destroy_old происходит последним
     assert calls == [
         "export",
         "provision",
@@ -34,7 +34,7 @@ def test_rotate_reports_unswitched_subscription():
         export_current_users=lambda: [],
         deploy_and_configure=lambda ip: None,
         import_users=lambda ip, users: None,
-        switch_subscription=lambda ip: False,  # no stable domain
+        switch_subscription=lambda ip: False,  # нет стабильного домена
         destroy_old=lambda ip: None,
         old_ip="2.2.2.2",
     )

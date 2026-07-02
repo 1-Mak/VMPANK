@@ -1,11 +1,11 @@
 ---
-# Full server bring-up (FR-2, FR-3, FR-5). Idempotent — safe to re-run (NFR-1).
+# Полный подъём сервера (FR-2, FR-3, FR-5). Идемпотентно — безопасно перезапускать (NFR-1).
 - name: Harden + deploy VPN server
   hosts: vpn
   become: true
   gather_facts: true
   vars:
-    # Defaults; overridden by vpnctl via --extra-vars.
+    # Дефолты; переопределяются vpnctl через --extra-vars.
     ssh_hardened_port: 22
     awg_port: 51820
     awg_deploy_mode: same-host

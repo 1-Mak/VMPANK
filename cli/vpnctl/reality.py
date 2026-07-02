@@ -1,8 +1,8 @@
-"""VLESS + Reality key material and Xray inbound/config generation (FR-4).
+"""Ключевой материал VLESS + Reality и генерация inbound/конфига Xray (FR-4).
 
-Enforces the ТЗ constraints:
-  О-2 : port 443/tcp, flow = xtls-rprx-vision, fingerprint chrome
-  О-4 : do NOT enable post-quantum TLS / new Vision "seed" defaults in the inbound
+Обеспечивает соблюдение ограничений ТЗ:
+  О-2 : порт 443/tcp, flow = xtls-rprx-vision, fingerprint chrome
+  О-4 : НЕ включать post-quantum TLS / новые Vision-«seed» дефолты в inbound
 """
 
 from __future__ import annotations
@@ -16,27 +16,27 @@ from typing import Any
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey
 
-# ТЗ-mandated invariants — asserted by validate_inbound() and the test suite.
+# Инварианты, предписанные ТЗ — проверяются validate_inbound() и тестами.
 REALITY_PORT = 443
 REALITY_FLOW = "xtls-rprx-vision"
 DEFAULT_FINGERPRINT = "chrome"
 
 
 def _b64url_nopad(raw: bytes) -> str:
-    """Base64url without padding — the encoding `xray x25519` emits."""
+    """Base64url без паддинга — кодировка, которую выдаёт `xray x25519`."""
     return base64.urlsafe_b64encode(raw).rstrip(b"=").decode("ascii")
 
 
 @dataclass(frozen=True)
 class RealityKeys:
-    """An x25519 keypair in the same encoding as `xray x25519` (FR-4.1)."""
+    """Пара ключей x25519 в той же кодировке, что и `xray x25519` (FR-4.1)."""
 
     private_key: str
     public_key: str
 
 
 def generate_keys() -> RealityKeys:
-    """Generate an x25519 keypair for Reality (equivalent to `xray x25519`)."""
+    """Сгенерировать пару ключей x25519 для Reality (эквивалент `xray x25519`)."""
     priv = X25519PrivateKey.generate()
     priv_raw = priv.private_bytes(
         encoding=serialization.Encoding.Raw,
@@ -51,7 +51,7 @@ def generate_keys() -> RealityKeys:
 
 
 def public_from_private(private_key: str) -> str:
-    """Derive the Reality public key from a base64url private key."""
+    """Вывести публичный ключ Reality из приватного ключа base64url."""
     padded = private_key + "=" * (-len(private_key) % 4)
     raw = base64.urlsafe_b64decode(padded)
     if len(raw) != 32:
@@ -65,7 +65,7 @@ def public_from_private(private_key: str) -> str:
 
 
 def generate_short_id(length_bytes: int = 8) -> str:
-    """Random hex shortId (FR-4.1). Reality allows 1..8 bytes (2..16 hex chars)."""
+    """Случайный hex shortId (FR-4.1). Reality допускает 1..8 байт (2..16 hex-символов)."""
     if not 1 <= length_bytes <= 8:
         raise ValueError("shortId length must be 1..8 bytes")
     return secrets.token_hex(length_bytes)
@@ -73,7 +73,7 @@ def generate_short_id(length_bytes: int = 8) -> str:
 
 @dataclass
 class RealityInbound:
-    """Parameters for a single VLESS+Reality inbound."""
+    """Параметры одного inbound VLESS+Reality."""
 
     sni: str
     private_key: str
@@ -82,21 +82,21 @@ class RealityInbound:
     port: int = REALITY_PORT
     flow: str = REALITY_FLOW
     fingerprint: str = DEFAULT_FINGERPRINT
-    dest: str | None = None  # defaults to sni:443
+    dest: str | None = None  # по умолчанию sni:443
     tag: str = "vless-reality-in"
 
     def dest_addr(self) -> str:
         return self.dest or f"{self.sni}:443"
 
     def to_xray_inbound(self) -> dict[str, Any]:
-        """Render the Xray inbound object (О-2/О-4 compliant)."""
+        """Отрендерить объект inbound Xray (соответствует О-2/О-4)."""
         return {
             "tag": self.tag,
             "listen": "0.0.0.0",
             "port": self.port,
             "protocol": "vless",
             "settings": {
-                "clients": [],  # populated by Marzban per-user
+                "clients": [],  # заполняется Marzban для каждого пользователя
                 "decryption": "none",
             },
             "streamSettings": {
@@ -110,7 +110,7 @@ class RealityInbound:
                     "privateKey": self.private_key,
                     "shortIds": self.short_ids or [""],
                     "fingerprint": self.fingerprint,
-                    # О-4: PQ-TLS and new Vision "seed" defaults intentionally OFF.
+                    # О-4: PQ-TLS и новые Vision-«seed» дефолты намеренно ВЫКЛЮЧЕНЫ.
                 },
             },
             "sniffing": {"enabled": True, "destOverride": ["http", "tls", "quic"]},
@@ -118,7 +118,7 @@ class RealityInbound:
 
 
 def build_xray_config(inbound: RealityInbound, log_level: str = "warning") -> dict[str, Any]:
-    """Assemble a full, minimal xray_config.json around the Reality inbound."""
+    """Собрать полный минимальный xray_config.json вокруг inbound Reality."""
     return {
         "log": {"loglevel": log_level},
         "inbounds": [inbound.to_xray_inbound()],
@@ -128,7 +128,7 @@ def build_xray_config(inbound: RealityInbound, log_level: str = "warning") -> di
         ],
         "routing": {
             "rules": [
-                # Drop BitTorrent to reduce abuse/attention on a shared server (Д-4).
+                # Режем BitTorrent, чтобы снизить абьюз/внимание на общем сервере (Д-4).
                 {"type": "field", "protocol": ["bittorrent"], "outboundTag": "block"},
             ]
         },
@@ -136,7 +136,7 @@ def build_xray_config(inbound: RealityInbound, log_level: str = "warning") -> di
 
 
 def validate_inbound(inbound: RealityInbound) -> None:
-    """Assert ТЗ hard constraints (О-2). Raises ValueError on violation."""
+    """Проверить жёсткие ограничения ТЗ (О-2). Бросает ValueError при нарушении."""
     if inbound.port != REALITY_PORT:
         raise ValueError(f"О-2 violation: Reality port must be {REALITY_PORT}, got {inbound.port}")
     if inbound.flow != REALITY_FLOW:

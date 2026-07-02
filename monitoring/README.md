@@ -1,15 +1,14 @@
 # monitoring/ (FR-7)
 
-The detection logic lives in `cli/vpnctl/monitoring.py`; these units just
-schedule it.
+Логика детекции живёт в `cli/vpnctl/monitoring.py`; эти юниты только её планируют.
 
-| unit                     | where it runs        | what it does                              |
+| юнит                     | где запускается      | что делает                                |
 |--------------------------|----------------------|-------------------------------------------|
-| `vpn-healthcheck.*`      | the VPS              | containers/port/disk (`monitor health`)   |
-| `vpn-ru-check.*`         | operator/off-RU host | `monitor ru` + `monitor freeze`, alerts   |
-| `vpn-backup.*`           | the VPS or operator  | daily `vpnctl backup`                     |
+| `vpn-healthcheck.*`      | на VPS               | контейнеры/порт/диск (`monitor health`)   |
+| `vpn-ru-check.*`         | оператор/хост вне РФ | `monitor ru` + `monitor freeze`, алерты   |
+| `vpn-backup.*`           | VPS или оператор     | ежедневный `vpnctl backup`                |
 
-Install:
+Установка:
 
 ```bash
 sudo cp systemd/*.service systemd/*.timer /etc/systemd/system/
@@ -17,10 +16,10 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now vpn-healthcheck.timer vpn-ru-check.timer vpn-backup.timer
 ```
 
-**Why the RU check runs off-RU:** check-host.net dispatches the probe *from*
-Russian nodes for you (FR-7.1), so the timer itself just needs reliable outbound
-internet and the Telegram token — it does not need to be inside Russia.
+**Почему RU-check запускается вне РФ:** check-host.net сам отправляет пробу *с*
+российских нод за тебя (FR-7.1), поэтому самому таймеру нужен лишь надёжный
+исходящий интернет и токен Telegram — быть внутри России не требуется.
 
-Alerts go to Telegram when `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID` are set
-(FR-7.4); otherwise failures are logged and the timer exits non-zero (visible in
+Алерты уходят в Telegram, когда заданы `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID`
+(FR-7.4); иначе сбои логируются, а таймер завершается ненулевым кодом (видно в
 `journalctl -u <unit>`).
